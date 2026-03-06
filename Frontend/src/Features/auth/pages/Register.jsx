@@ -1,12 +1,20 @@
-import React from "react";
+import { useState } from "react";
 import {useNavigate,Link} from 'react-router'
+import { useAuth } from "../hooks/useAuth";
 
 
 function Register() {
 
   const navigate = useNavigate();
-  const handleSubmit = (e) => {
+  const [user,setUser] = useState("");
+  const [email,setEmail] = useState("");
+  const[password,setPassword] = useState("");
+
+  const {loading , handleRegister} = useAuth()
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    await handleRegister({username,email,password})
+    navigate("/")
   };
   return (
     <main>
@@ -16,6 +24,7 @@ function Register() {
           <div className="input-group">
             <label htmlFor="enail">Username</label>
             <input
+            onChange={(e) => setUser(e.target.value)}
               className="Username-input"
               type="text"
               id="username"
@@ -24,8 +33,9 @@ function Register() {
             />
           </div>
           <div className="input-group">
-            <label htmlFor="enail">Email</label>
+            <label htmlFor="email">Email</label>
             <input
+              onChange={(e) => setEmail(e.target.value)}
               className="email-input"
               type="text"
               id="email"
@@ -38,6 +48,7 @@ function Register() {
               Password
             </label>
             <input
+              onChange={(e)=> setPassword(e.target.value)}
               className="password-input"
               type="password"
               id="password"
