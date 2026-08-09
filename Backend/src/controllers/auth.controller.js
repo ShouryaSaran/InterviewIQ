@@ -1,153 +1,194 @@
-const userModel = require("../models/user.model")
-const bcrypt = require('bcryptjs')
-const jwt = require("jsonwebtoken")
-const tokenBlackListModel = require("../models/blacklist.model")
-
+const supabase = require('../config/supabase');
 
 /**
  * @name registerUserController
- * @description register a new user , expects username , email and password in the request
+ * @description Register a new user using Supabase Auth and save profile
  * @access Public
  */
-
 async function registerUserController(req, res) {
+    const { username, email, password } = req.body;
 
-    const { username , email , password} = req.body
-
-    if(!username || !email || !password){
+    if (!username || !email || !password) {
         return res.status(400).json({
-            message: "Please provide username,email and password"
-        })
+            message: "Please provide username, email and password"
+        });
     }
 
+    try {
+        // Sign up user with Supabase Auth
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    full_name: username
+                }
+            }
+        });
 
-    const  isUserAlreadyExists = await userModel.findOne({
-        $or : [{username} , {email} ]
-    })
-
-    if(isUserAlreadyExists){
-        if(isUserAlreadyExists.username == username){
+        if (error) {
             return res.status(400).json({
-                message: "Account alreay exists with this username"
-            })
+                message: error.message
+            });
         }
-        else {
-            return res.status(400).json ({
-                message: "Account already exists with this email address"
-            })
+
+        if (!data.user) {
+            return res.status(400).json({
+                message: "User registration failed"
+            });
         }
+
+        // Upsert user profile into profiles table
+        await supabase.from('profiles').upsert({
+            id: data.user.id,
+            full_name: username
+        });
+
+        const token = data.session?.access_token;
+        if (token) {
+            res.cookie("token", token, {
+                httpOnly: true,
+                sameSite: 'lax'
+            });
+        }
+
+        res.status(201).json({
+            message: "User registered successfully",
+            user: {
+                id: data.user.id,
+                username: username,
+                email: data.user.email
+            }
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: err.message || "An unexpected error occurred during registration"
+        });
     }
-
-    const hash = await bcrypt.hash(password,12)
-
-    const user = await userModel.create({
-        username,
-        email,
-        password:hash
-    })
-
-    const token = jwt.sign(
-        {id: user._id , username: user.username},
-        process.env.JWT_SECRET,
-        {expiresIn: "1d"}
-    )
-
-    res.cookie("token" , token)
-
-    res.status(201).json({
-        message: "User registered successfully",
-        user:{
-            id:user._id,
-            username: user.username,
-            email: user.email
-        }
-    })
 }
 
-/** 
+/**
  * @name loginUserController
- * @description logs in an existing user , expects email and password in the request
+ * @description Log in an existing user using Supabase Auth
  * @access Public
  */
+async function loginUserController(req, res) {
+    const { email, password } = req.body;
 
-
-async function loginUserController(req,res) {
-    
-    
-    const {email , password} = req.body
-
-    const user = await userModel.findOne({email})
-
-    if(!user) {
+    if (!email || !password) {
         return res.status(400).json({
-            message: "Invalid email or password"
-        })
+            message: "Please provide email and password"
+        });
     }
 
-    const isPasswordValid = await bcrypt.compare(password , user.password)
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
 
-    if(!isPasswordValid){
-        return res.status(400).json({
-            message: "Password is incorrect"
-        })
-    }
-
-    const token = jwt.sign(
-        {id: user._id , username: user.username},
-        process.env.JWT_SECRET,
-        {expiresIn: "1d"}
-    )
-
-    res.cookie("token", token)
-    res.status(200).json({
-        message: "User loggedIn successfully.",
-        user: {
-            id:user.id,
-            username:user.username,
-            email: user.email
+        if (error || !data.user) {
+            return res.status(400).json({
+                message: error?.message || "Invalid email or password"
+            });
         }
-    })
+
+        const token = data.session?.access_token;
+        if (token) {
+            res.cookie("token", token, {
+                httpOnly: true,
+                sameSite: 'lax'
+            });
+        }
+
+        // Fetch profile full_name if available
+        let username = data.user.user_metadata?.full_name || data.user.email;
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', data.user.id)
+            .single();
+
+        if (profile?.full_name) {
+            username = profile.full_name;
+        }
+
+        res.status(200).json({
+            message: "User loggedIn successfully.",
+            user: {
+                id: data.user.id,
+                username: username,
+                email: data.user.email
+            }
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: err.message || "An unexpected error occurred during login"
+        });
+    }
 }
+
 /**
- * @route GET /api/auth/logout
- * @description clear token from user cookie and add token in the blacklist, expects a token in the request
- * @access public 
+ * @name logoutUserController
+ * @description Clear token from user cookie and sign out of Supabase
+ * @access Public
  */
-async function logoutUserController(req,res) {
-    const token = req.cookies.token
-    if(token){
-        await tokenBlackListModel.create({token})
+async function logoutUserController(req, res) {
+    try {
+        const token = req.cookies?.token;
+        if (token) {
+            await supabase.auth.signOut();
+        }
+    } catch (err) {
+        // Continue clearing cookie regardless
     }
 
-    res.clearCookie('token')
-
+    res.clearCookie('token');
     res.status(200).json({
         message: "User logged out successfully"
-    })
+    });
 }
+
 /**
  * @name getMeController
- * @description get the current logged in user details
+ * @description Get current logged in user details from Supabase Auth & profiles table
  * @access Private
  */
-async function getMeController(req,res) {
+async function getMeController(req, res) {
+    try {
+        const userId = req.user.id;
+        const email = req.user.email;
 
-    const user = await userModel.findById(req.user.id)
+        let username = req.user.user_metadata?.full_name || email;
 
-    res.status(200).json({
-        message: "User details fetched successfully.",
-        user : {
-            id:user.id,
-            username: user.username,
-            email: user.email
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', userId)
+            .single();
+
+        if (profile?.full_name) {
+            username = profile.full_name;
         }
-    })
-}
 
+        res.status(200).json({
+            message: "User details fetched successfully.",
+            user: {
+                id: userId,
+                username: username,
+                email: email
+            }
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Failed to fetch user details"
+        });
+    }
+}
 
 module.exports = {
     registerUserController,
     loginUserController,
     logoutUserController,
     getMeController
-}
+};

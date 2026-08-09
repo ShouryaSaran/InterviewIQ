@@ -1,40 +1,36 @@
-const jwt = require('jsonwebtoken')
-const blacklist = require('../models/blacklist.model')
+const supabase = require('../config/supabase');
 
+async function authUser(req, res, next) {
+    const authHeader = req.headers.authorization;
+    let token = req.cookies?.token;
 
-async function authUser(req,res,next) {
-
-    const token = req.cookies.token
-
-    if(!token){
-        return res.status(401).json({
-            message:"token not provided"
-        })
+    if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
     }
 
-    const isBlackList = await blacklist.findOne({
-        token
-    })
-
-    if(isBlackList){
+    if (!token) {
         return res.status(401).json({
-            message: "Please Login Again."
-        })
+            message: "token not provided"
+        });
     }
+
     try {
+        const { data, error } = await supabase.auth.getUser(token);
 
-        const decoded = jwt.verify(token , process.env.JWT_SECRET)
+        if (error || !data?.user) {
+            return res.status(401).json({
+                message: "Invalid or expired token. Please Login Again."
+            });
+        }
 
-        req.user = decoded
-
-        next()
-    }
-
-    catch(err){
+        req.user = data.user;
+        req.token = token;
+        next();
+    } catch (err) {
         return res.status(401).json({
-            message:"Invalid Token."
-        })
+            message: "Invalid Token."
+        });
     }
 }
 
-module.exports = {authUser}
+module.exports = { authUser };

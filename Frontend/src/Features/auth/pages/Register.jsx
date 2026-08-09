@@ -2,20 +2,29 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import '../styles/auth.register.scss'
+import { Mail, Lock, Eye, EyeOff, User, ArrowRight, Check } from 'lucide-react'
 
 function Register() {
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const { loading, handleRegister } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     await handleRegister({ username, email, password })
-    navigate('/dashboard')
+    navigate('/')
   }
+
+  // Password validation checks
+  const hasMinLength = password.length >= 8
+  const hasUppercase = /[A-Z]/.test(password)
+  const hasNumberOrSpecial = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
 
   if (loading) {
     return (
@@ -27,106 +36,215 @@ function Register() {
 
   return (
     <div className="Register-Page">
+      {/* Background decorative elements */}
+      <div className="register-bg-decorations">
+        <div className="decoration decoration--code">&lt;/&gt;</div>
+        <div className="decoration decoration--chat">💬</div>
+        <div className="decoration decoration--graph">📊</div>
+        <div className="decoration decoration--bracket">{'{}'}</div>
+      </div>
+
       <header className="register-header">
-        <Link to="/login" className="register-back">
-          ←
+        <Link to="/" className="register-header__brand">
+          <div className="register-brand__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+              <path d="M8 12C8 9.79 9.79 8 12 8s4 1.79 4 4-1.79 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <span className="register-brand__name">INTERPREP</span>
         </Link>
-        <h1 className="register-title">Create Account</h1>
+        <div className="register-header__actions">
+          <span className="register-header__text">Already have an account?</span>
+          <Link to="/login" className="register-header__link">Log in</Link>
+        </div>
       </header>
 
       <main className="register-content">
-        <section className="register-hero">
-          <div className="register-hero__overlay" />
-          <div className="register-hero__copy">
-            <div className="register-hero__icon">🎓</div>
-            <h2 className="register-hero__heading">Elevate Your Career Preparation</h2>
-            <p className="register-hero__text">
-              Join thousands of professionals mastering their interview skills.
-            </p>
+        <div className="register-form-wrapper">
+          <div className="register-title-section">
+            <h1 className="register-title">CREATE YOUR ACCOUNT</h1>
+            <p className="register-subtitle">Start your journey to ace your next interview</p>
           </div>
-        </section>
 
-        <section className="register-form">
-          <form onSubmit={handleSubmit}>
-            <label className="field">
-              <span className="field__label">Full Name</span>
-              <input
-                className="field__input"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Your Name"
-                required
-              />
-            </label>
+          <div className="register-form__card">
+            <form onSubmit={handleSubmit}>
+              <label className="field">
+                <span className="field__label">Full Name</span>
+                <div className="field__input-wrapper">
+                  <input
+                    className="field__input"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter your full name"
+                    required
+                  />
+                  <User className="field__icon" size={18} />
+                </div>
+              </label>
 
-            <label className="field">
-              <span className="field__label">Email Address</span>
-              <input
-                className="field__input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.com"
-                required
-              />
-            </label>
+              <label className="field">
+                <span className="field__label">Email Address</span>
+                <div className="field__input-wrapper">
+                  <input
+                    className="field__input"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                  />
+                  <Mail className="field__icon" size={18} />
+                </div>
+              </label>
 
-            <label className="field">
-              <span className="field__label">Password</span>
-              <input
-                className="field__input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </label>
+              <label className="field">
+                <span className="field__label">Password</span>
+                <div className="field__input-wrapper">
+                  <input
+                    className="field__input"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="field__toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </label>
 
-            <button type="submit" className="primary-button">
-              Create account
-            </button>
+              <label className="field">
+                <span className="field__label">Confirm Password</span>
+                <div className="field__input-wrapper">
+                  <input
+                    className="field__input"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm your password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="field__toggle"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </label>
 
-            <div className="divider" aria-hidden="true">
-              <span>OR CONTINUE WITH</span>
-            </div>
+              {/* Password requirements checklist */}
+              <div className="password-rules">
+                <p className="password-rules__title">Password must contain:</p>
+                <div className={`password-rule ${hasMinLength ? 'password-rule--met' : ''}`}>
+                  <Check size={14} />
+                  <span>At least 8 characters</span>
+                </div>
+                <div className={`password-rule ${hasUppercase ? 'password-rule--met' : ''}`}>
+                  <Check size={14} />
+                  <span>One uppercase letter</span>
+                </div>
+                <div className={`password-rule ${hasNumberOrSpecial ? 'password-rule--met' : ''}`}>
+                  <Check size={14} />
+                  <span>One number or special character</span>
+                </div>
+              </div>
 
-            <div className="social-buttons">
-              <button type="button" className="social-button">
-                <span className="social-button__icon">G</span>
-                Google
+              <button type="submit" className="primary-button">
+                <span>Sign Up</span>
+                <ArrowRight size={18} />
               </button>
-              <button type="button" className="social-button">
-                <span className="social-button__icon"></span>
-                Apple
-              </button>
+
+              <div className="divider" aria-hidden="true">
+                <span>or</span>
+              </div>
+
+              <div className="social-buttons">
+                <button type="button" className="social-button">
+                  <svg className="social-button__icon" viewBox="0 0 24 24" width="20" height="20">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+                <button type="button" className="social-button">
+                  <svg className="social-button__icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                  <span>Continue with GitHub</span>
+                </button>
+              </div>
+
+              <p className="legal">
+                By creating an account, you agree to InterPrep's{' '}
+                <Link to="#" className="legal__link">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link to="#" className="legal__link">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+            </form>
+          </div>
+        </div>
+
+        {/* Bottom illustration area */}
+        <div className="register-illustration">
+          <div className="illustration-desk">
+            <div className="desk-laptop">
+              <div className="laptop-screen">
+                <div className="laptop-header">
+                  <span className="laptop-dot"></span>
+                  <span className="laptop-dot"></span>
+                  <span className="laptop-dot"></span>
+                </div>
+                <div className="laptop-content">
+                  <div className="laptop-dashboard">
+                    <div className="dashboard-bar" style={{width: '75%'}}></div>
+                    <div className="dashboard-bar" style={{width: '60%'}}></div>
+                    <div className="dashboard-bar" style={{width: '90%'}}></div>
+                    <div className="dashboard-bar" style={{width: '45%'}}></div>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <p className="login-link">
-              Already have an account?{' '}
-              <Link to="/login" className="login-link__anchor">
-                Log in
-              </Link>
-            </p>
-
-            <p className="legal">
-              By creating an account, you agree to InterPrep's{' '}
-              <Link to="#" className="legal__link">
-                Terms of Service
-              </Link>{' '}
-              and{' '}
-              <Link to="#" className="legal__link">
-                Privacy Policy
-              </Link>
-              .
-            </p>
-          </form>
-        </section>
+            <div className="desk-items">
+              <div className="desk-notebook">
+                <div className="notebook-title">TODAY'S PLAN</div>
+                <div className="notebook-item">☑ Mock Interview</div>
+                <div className="notebook-item">☑ DSA Practice</div>
+                <div className="notebook-item">☐ System Design</div>
+                <div className="notebook-item">☐ Behavioral Prep</div>
+              </div>
+              <div className="desk-score">
+                <svg viewBox="0 0 60 60" className="score-ring">
+                  <circle cx="30" cy="30" r="26" fill="none" stroke="#E8E6DD" strokeWidth="4" />
+                  <circle cx="30" cy="30" r="26" fill="none" stroke="#5B6751" strokeWidth="4"
+                    strokeDasharray="147.65" strokeDashoffset="36.91" strokeLinecap="round"
+                    transform="rotate(-90 30 30)" />
+                </svg>
+                <span className="score-text">75%</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   )
 }
 
 export default Register
-

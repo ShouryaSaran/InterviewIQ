@@ -7,22 +7,32 @@
   border: none;
   outline: none;
   padding: 0.85rem 1.25rem;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.2s var(--ease-out), background-color 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
+  font-family: var(--font-body);
 
   &.primary-button {
-    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    background: var(--primary);
     color: white;
-    box-shadow: 0 12px 30px rgba(13, 78, 235, 0.32);
+    box-shadow: 0 4px 14px rgba(91, 103, 81, 0.25);
+  }
+
+  &.primary-button:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 20px rgba(91, 103, 81, 0.3);
   }
 
   &.ghost {
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--surface);
     color: var(--text);
-    border: 1px solid rgba(15, 23, 42, 0.12);
-    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+  }
+
+  &.ghost:hover {
+    background: var(--surface-alt);
+    border-color: var(--border);
   }
 
   &:hover {
@@ -33,4 +43,3 @@
     transform: translateY(0);
   }
 }
-

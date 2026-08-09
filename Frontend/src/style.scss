@@ -1,15 +1,41 @@
 @use "./styles/button.scss";
 
 :root {
-  --bg: #f6f7ff;
-  --surface: #ffffff;
-  --text: #0b0d17;
-  --muted: #6b7280;
-  --border: rgba(15, 23, 42, 0.12);
-  --primary: #0d4eeb;
-  --primary-2: #1d65ff;
-  --shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-  --radius: 18px;
+  /* ── Cream / Ivory Palette ── */
+  --bg:          #F7F6F0;
+  --bg-warm:     #F2F0E8;
+  --surface:     #FFFFFF;
+  --surface-alt: #EFEEE6;
+
+  /* ── Text ── */
+  --text:        #1C2219;
+  --text-secondary: #4A5043;
+  --muted:       #7A7D75;
+
+  /* ── Sage / Olive Accent ── */
+  --primary:     #5B6751;
+  --primary-hover: #4A5641;
+  --primary-light: rgba(91, 103, 81, 0.08);
+
+  /* ── Border & Shadow ── */
+  --border:      #D6D4CB;
+  --border-light: #E8E6DD;
+  --shadow-sm:   0 2px 8px rgba(28, 34, 25, 0.06);
+  --shadow-md:   0 8px 24px rgba(28, 34, 25, 0.08);
+  --shadow-lg:   0 20px 50px rgba(28, 34, 25, 0.10);
+
+  /* ── Radius ── */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+
+  /* ── Typography ── */
+  --font-body:   'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* ── Transitions ── */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -24,7 +50,9 @@ body {
   min-height: 100%;
   background-color: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -34,9 +62,57 @@ a {
 
 button {
   font-family: inherit;
+  cursor: pointer;
+}
+
+input {
+  font-family: inherit;
 }
 
 .container {
-  width: min(1100px, 100% - 3rem);
+  width: min(1200px, 100% - 3rem);
   margin: 0 auto;
+}
+
+/* ── Micro-animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Loading state */
+.loading-state {
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  
+  h1 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
 }
